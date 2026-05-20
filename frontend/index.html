@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>F.I.G - PostgreSQL Edition</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        surface: "#f8f9fa",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-container": "#edeeef",
+                        "surface-container-high": "#e7e8e9",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-surface": "#191c1d",
+                        "on-surface-variant": "#5a4139",
+                        primary: "#aa3000",
+                        "primary-container": "#d04411",
+                        "on-primary": "#ffffff",
+                        tertiary: "#00628b",
+                        "outline-variant": "#e2bfb5",
+                    },
+                    fontFamily: {
+                        headline: ["Manrope", "sans-serif"],
+                        body: ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        .font-headline { font-family: 'Manrope', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #e1e3e4; border-radius: 10px; }
+        .glass-panel { backdrop-filter: blur(24px); background-color: rgba(225, 227, 228, 0.8); }
+        .ambient-shadow { box-shadow: 0 12px 40px rgba(25, 28, 29, 0.06); }
+        .btn-gradient { background: linear-gradient(180deg, #aa3000 0%, #d04411 100%); }
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #aa3000; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-surface text-on-surface overflow-hidden h-screen flex">
+
+    <div id="login-view" class="absolute inset-0 z-[100] bg-surface flex flex-col items-center justify-center p-4">
+        <div class="bg-surface-container-lowest p-8 rounded-2xl ambient-shadow w-full max-w-md border border-outline-variant/20">
+            <div class="text-center mb-8">
+                <div class="bg-primary/10 w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 text-primary">
+                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+                </div>
+                <h1 class="text-3xl font-bold font-headline text-on-surface mb-2">F.I.G</h1>
+                <p class="text-on-surface-variant text-sm">Funcionamiento Íntegro Gastronómico</p>
+            </div>
+
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Usuario</label>
+                    <input type="text" id="username" class="w-full px-4 py-3 rounded-xl bg-surface-container-low border border-surface-container focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-medium text-on-surface" required placeholder="admin">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Contraseña</label>
+                    <input type="password" id="password" class="w-full px-4 py-3 rounded-xl bg-surface-container-low border border-surface-container focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-medium text-on-surface" required placeholder="••••••••">
+                </div>
+
+                <div id="login-error" class="hidden bg-red-50 text-red-600 text-sm font-bold text-center p-3 rounded-lg flex items-center justify-center gap-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> <span id="login-error-text">Credenciales inválidas</span>
+                </div>
+
+                <button type="submit" id="btn-login" class="w-full btn-gradient py-4 text-on-primary font-bold rounded-xl shadow-lg active:scale-95 transition-transform flex justify-center items-center gap-2 mt-2">
+                    <i data-lucide="log-in" class="w-5 h-5"></i>
+                    INICIAR SESIÓN
+                </button>
+            </form>
+
+            <div class="mt-8 bg-surface-container-low p-4 rounded-xl text-xs text-on-surface-variant border border-surface-container">
+                <p class="font-bold mb-2 uppercase tracking-widest text-[10px]">Credenciales de Prueba:</p>
+                <ul class="space-y-1 font-medium">
+                    <li class="flex justify-between"><span>Admin:</span> <span class="font-bold text-on-surface">admin / password123</span></li>
+                    <li class="flex justify-between"><span>Garzón:</span> <span class="font-bold text-on-surface">garzon / password123</span></li>
+                    <li class="flex justify-between"><span>Chef:</span> <span class="font-bold text-on-surface">chef / password123</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <aside class="hidden fixed left-0 top-0 h-full z-40 flex-col w-20 md:w-64 bg-surface-container-lowest border-r border-outline-variant/20 shadow-sm transition-all" id="main-sidebar">
+        <div class="p-6">
+            <h1 class="text-xl font-bold tracking-tight text-on-surface font-headline hidden md:block">F.I.G</h1>
+            <h1 class="text-xl font-bold tracking-tight text-on-surface font-headline block md:hidden text-center">FIG</h1>
+            <p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-1 hidden md:block" id="user-station-label">Estación</p>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2 mt-4" id="main-nav">
+            <button id="nav-waiter" class="nav-item hidden w-full items-center px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-low transition-colors">
+                <i data-lucide="user" class="mr-0 md:mr-3 w-5 h-5"></i>
+                <span class="hidden md:block">Garzón</span>
+            </button>
+            <button id="nav-kitchen" class="nav-item hidden w-full items-center px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-low transition-colors">
+                <i data-lucide="utensils" class="mr-0 md:mr-3 w-5 h-5"></i>
+                <span class="hidden md:block">Cocina (KDS)</span>
+            </button>
+            <button id="nav-admin" class="nav-item hidden w-full items-center px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-low transition-colors">
+                <i data-lucide="bar-chart-3" class="mr-0 md:mr-3 w-5 h-5"></i>
+                <span class="hidden md:block">Admin</span>
+            </button>
+        </nav>
+    </aside>
+
+    <div id="main-content" class="hidden flex-1 flex-col ml-20 md:ml-64 h-screen overflow-hidden transition-all">
+
+        <header class="flex justify-between items-center w-full px-6 sticky top-0 z-50 h-16 bg-surface-container-lowest shadow-sm">
+            <div class="flex items-center gap-4">
+                <span class="text-lg font-black uppercase text-on-surface font-headline" id="current-view-title">F.I.G</span>
+                <div class="h-4 w-[1px] bg-outline-variant/30"></div>
+                <div class="flex items-center text-on-surface-variant text-sm gap-2">
+                    <i data-lucide="wifi" class="w-4 h-4"></i>
+                    <span class="font-medium" id="current-time">--:--</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="hidden md:block text-right mr-2 border-r border-surface-container pr-4">
+                    <div class="text-xs font-bold text-on-surface" id="header-user-name">Usuario</div>
+                    <div class="text-[10px] uppercase tracking-widest text-on-surface-variant" id="header-user-role">Rol</div>
+                </div>
+                <button id="btn-logout" class="text-primary p-2 hover:bg-red-50 rounded-full transition-colors ml-1" title="Cerrar Sesión">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-auto p-6 bg-surface-container-low" id="app-canvas">
+
+            <section class="view h-full grid grid-cols-12 gap-6" id="view-waiter">
+                <div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
+                    <div class="bg-surface-container-lowest p-6 rounded-xl ambient-shadow">
+                        <div class="flex justify-between items-end mb-6">
+                            <h2 class="font-headline text-xl font-bold">Comedor</h2>
+                            <button id="btn-merge-tables" class="text-tertiary hover:text-on-surface font-bold text-xs px-3 py-2 bg-surface-container rounded-lg flex items-center gap-2">
+                                <i data-lucide="merge" class="w-4 h-4"></i> Juntar Mesas
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-4 md:grid-cols-5 gap-4" id="table-grid"></div>
+                    </div>
+
+                    <div class="bg-surface-container-lowest p-6 rounded-xl ambient-shadow flex-1">
+                        <div class="flex flex-wrap gap-3 mb-6" id="category-chips"></div>
+                        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 pb-12" id="menu-items"></div>
+                    </div>
+                </div>
+
+                <div class="col-span-12 lg:col-span-4 flex flex-col h-full bg-surface-container-lowest rounded-xl ambient-shadow">
+                    <div class="p-5 bg-surface-container-high rounded-t-xl">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-headline font-bold text-lg" id="active-order-title">Comanda Actual</h3>
+                            <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-black" id="active-table-badge">--</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4 space-y-3" id="order-items-list"></div>
+                    <div class="p-6 bg-surface-container space-y-4 rounded-b-xl border-t border-surface-container-highest">
+                        <div class="flex justify-between items-center text-on-surface-variant text-sm">
+                            <span>Subtotal</span>
+                            <span id="order-subtotal">$0</span>
+                        </div>
+                       <div class="flex justify-between items-center font-headline font-bold text-2xl text-on-surface">
+                            <span>Total</span>
+                            <span id="order-total">$0</span>
+                        </div>
+
+                        <div class="flex flex-col gap-3 mt-2">
+                            <button id="btn-cancel-order" class="w-full bg-red-50 text-red-600 hover:bg-red-100 py-3 font-bold rounded-xl transition-transform active:scale-95 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200" disabled>
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                CANCELAR COMANDA
+                            </button>
+
+                            <button id="btn-send-kitchen" class="w-full btn-gradient py-4 text-on-primary font-bold rounded-xl shadow-lg active:scale-95 transition-transform flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i data-lucide="chef-hat" class="w-5 h-5"></i>
+                                ENVIAR A COCINA
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="view hidden h-full flex flex-col gap-6" id="view-kitchen">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="font-headline text-3xl font-black text-on-surface">Monitor de Cocina</h2>
+                        <p class="text-sm text-on-surface-variant">Pedidos en preparación priorizados por tiempo</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-xs font-bold uppercase flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> 0-10m
+                        </div>
+                        <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg text-xs font-bold uppercase flex items-center">
+                            <span class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span> 11-20m
+                        </div>
+                        <div class="bg-red-100 text-red-700 px-4 py-2 rounded-lg text-xs font-bold uppercase flex items-center">
+                            <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> 20m+
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-y-auto" id="kds-grid"></div>
+            </section>
+
+            <section class="view hidden h-full grid grid-cols-12 gap-6" id="view-admin">
+                <div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
+                    <div class="bg-surface-container-lowest p-6 rounded-xl ambient-shadow">
+                        <h2 class="font-headline text-2xl font-bold mb-6 text-tertiary">Control de Bodega</h2>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-surface-container-highest text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">
+                                    <tr>
+                                        <th class="p-4 rounded-tl-lg">Ingrediente</th>
+                                        <th class="p-4">Estado</th>
+                                        <th class="p-4 text-right">Stock Actual</th>
+                                        <th class="p-4 text-right rounded-tr-lg">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm divide-y divide-surface-container" id="inventory-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-surface-container-lowest p-6 rounded-xl ambient-shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-headline text-xl font-bold">Gestión de Usuarios</h2>
+                            <button id="btn-add-user" class="bg-tertiary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-tertiary/90 transition-colors flex items-center gap-2">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i> Nuevo Usuario
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-surface-container-highest text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">
+                                    <tr>
+                                        <th class="p-4 rounded-tl-lg">Nombre</th>
+                                        <th class="p-4">Rol</th>
+                                        <th class="p-4">Estado</th>
+                                        <th class="p-4 text-right rounded-tr-lg">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm divide-y divide-surface-container" id="users-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-surface-container-lowest p-6 rounded-xl ambient-shadow">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                            <div>
+                                <h2 class="font-headline text-xl font-bold">Gestión de Productos</h2>
+                                <p class="text-sm text-on-surface-variant">Crea platos y recetas vinculadas a ingredientes.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="btn-add-product" class="bg-tertiary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-tertiary/90 transition-colors flex items-center gap-2">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Producto
+                                </button>
+                                <button id="btn-add-recipe" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors flex items-center gap-2">
+                                    <i data-lucide="book-open" class="w-4 h-4"></i> Receta
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-surface-container-highest text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">
+                                    <tr>
+                                        <th class="p-4 rounded-tl-lg">Producto</th>
+                                        <th class="p-4">Categoría</th>
+                                        <th class="p-4 text-right rounded-tr-lg">Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm divide-y divide-surface-container" id="products-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+                    <div class="bg-on-surface text-surface-container-lowest p-8 rounded-2xl ambient-shadow relative overflow-hidden">
+                        <div class="relative z-10">
+                            <h3 class="text-surface-container-highest text-xs uppercase font-bold tracking-widest mb-2">Ingresos del Día</h3>
+                            <div class="text-4xl font-headline font-black mb-6" id="total-revenue">$0</div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-surface-container-high">Pedidos Completados</span>
+                                    <span class="font-bold text-primary" id="admin-orders-count">0</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-surface-container-high">Usuarios Activos</span>
+                                    <span class="font-bold text-primary" id="admin-active-users">0</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-surface-container-high">Alertas Stock</span>
+                                    <span class="font-bold text-red-400" id="admin-low-stock">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-surface-container-lowest p-6 rounded-xl ambient-shadow flex-1 overflow-hidden flex flex-col">
+                        <h3 class="font-headline font-bold mb-4">Cuentas Pendientes</h3>
+                        <div class="flex-1 space-y-3 overflow-y-auto pr-2" id="payment-pending-list"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modal-container" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div id="modal-content" class="bg-surface-container-lowest rounded-2xl ambient-shadow w-full max-w-md border border-outline-variant/20 p-6 max-h-[90vh] overflow-y-auto"></div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="js/api/ApiClient.js"></script>
+    <script src="js/modules/ToastManager.js"></script>
+    <script src="js/modules/ViewManager.js"></script>
+    <script src="js/modules/WaiterView.js"></script>
+    <script src="js/modules/KitchenView.js"></script>
+    <script src="js/modules/AdminView.js"></script>
+    <script src="js/App.js"></script>
+</body>
+</html>
