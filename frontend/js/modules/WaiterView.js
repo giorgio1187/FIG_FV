@@ -196,6 +196,7 @@ class WaiterView {
     if (!recipe || !recipe.ingredients) return true;
 
     return recipe.ingredients.every(ri => {
+      if (!ri || !ri.ingredient_id) return false;
       const ing = this.inventoryMap[ri.ingredient_id];
       return ing && ing.stock >= ri.quantity_required;
     });

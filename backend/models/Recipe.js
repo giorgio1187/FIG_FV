@@ -17,11 +17,11 @@ class Recipe {
   async findByProductId(db, productId) {
     const result = await db.query(
       `SELECT r.*, 
-              json_agg(json_build_object(
+              COALESCE(json_agg(json_build_object(
                 'ingredient_id', ri.ingredient_id,
                 'ingredient_name', i.name,
                 'quantity_required', ri.quantity_required
-              )) as ingredients
+              ) ) FILTER (WHERE ri.ingredient_id IS NOT NULL), '[]') as ingredients
        FROM recipes r
        LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id
        LEFT JOIN ingredients i ON ri.ingredient_id = i.id
@@ -35,11 +35,11 @@ class Recipe {
   async findById(db) {
     const result = await db.query(
       `SELECT r.*, 
-              json_agg(json_build_object(
+              COALESCE(json_agg(json_build_object(
                 'ingredient_id', ri.ingredient_id,
                 'ingredient_name', i.name,
                 'quantity_required', ri.quantity_required
-              )) as ingredients
+              ) ) FILTER (WHERE ri.ingredient_id IS NOT NULL), '[]') as ingredients
        FROM recipes r
        LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id
        LEFT JOIN ingredients i ON ri.ingredient_id = i.id
@@ -53,11 +53,11 @@ class Recipe {
   async findAll(db) {
     const result = await db.query(
       `SELECT r.*, 
-              json_agg(json_build_object(
+              COALESCE(json_agg(json_build_object(
                 'ingredient_id', ri.ingredient_id,
                 'ingredient_name', i.name,
                 'quantity_required', ri.quantity_required
-              )) as ingredients
+              ) ) FILTER (WHERE ri.ingredient_id IS NOT NULL), '[]') as ingredients
        FROM recipes r
        LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id
        LEFT JOIN ingredients i ON ri.ingredient_id = i.id
