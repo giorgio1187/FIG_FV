@@ -85,6 +85,9 @@ class App {
         const defaultView = this._getDefaultViewForRole(this.currentUser.role);
         this.viewManager.switchView(defaultView);
 
+        // Cargar datos después de renderizar la vista
+        setTimeout(() => this._refreshCurrentView(), 100);
+
         this.toast.show(`Bienvenido, ${this.currentUser.name}`);
       } else {
         if (errorEl) errorEl.classList.remove('hidden');

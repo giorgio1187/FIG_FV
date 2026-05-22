@@ -153,6 +153,10 @@ class ApiClient {
     return this._request(`/api/recipes/product/${productId}`);
   }
 
+  async getRecipes() {
+    return this._request('/api/recipes');
+  }
+
   async getTables() {
     return this._request('/api/tables');
   }
