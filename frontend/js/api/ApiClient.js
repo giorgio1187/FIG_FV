@@ -157,6 +157,26 @@ class ApiClient {
     return this._request('/api/recipes');
   }
 
+  async createRecipe(productId) {
+    return this._request('/api/recipes', {
+      method: 'POST',
+      body: JSON.stringify({ product_id: productId })
+    });
+  }
+
+  async updateRecipeIngredient(recipeId, ingredientId, quantityRequired) {
+    return this._request(`/api/recipes/${recipeId}/ingredients`, {
+      method: 'PATCH',
+      body: JSON.stringify({ ingredientId, quantityRequired })
+    });
+  }
+
+  async removeRecipeIngredient(recipeId, ingredientId) {
+    return this._request(`/api/recipes/${recipeId}/ingredients/${ingredientId}`, {
+      method: 'DELETE'
+    });
+  }
+
   async getTables() {
     return this._request('/api/tables');
   }

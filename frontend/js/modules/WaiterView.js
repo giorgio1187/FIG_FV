@@ -76,7 +76,7 @@ class WaiterView {
       if (isSelected && !isOccupied) btnClass = 'bg-tertiary text-white ring-4 ring-tertiary/50';
 
       return `
-        <button onclick="app.waiterView.selectTable(${table.id})" class="h-20 flex flex-col items-center justify-center rounded-xl font-headline transition-all ${btnClass} ${this._isMerging() && !isOccupied ? 'cursor-pointer' : ''}">
+        <button onclick="app.waiterView.selectTable('${table.id}')" class="h-20 flex flex-col items-center justify-center rounded-xl font-headline transition-all ${btnClass} ${this._isMerging() && !isOccupied ? 'cursor-pointer' : ''}">
           <span class="text-[10px] uppercase font-bold opacity-70">Mesa</span>
           <span class="text-2xl font-black">${table.table_number}</span>
           ${isOccupied ? '<span class="text-[8px] mt-1 opacity-70">Ocupada</span>' : ''}

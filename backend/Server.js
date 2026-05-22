@@ -110,6 +110,52 @@ class Server {
         res.status(500).json({ success: false, error: error.message });
       }
     });
+    this.app.post('/api/recipes', async (req, res) => {
+      try {
+        const { product_id } = req.body;
+        const recipe = new Recipe({ product_id });
+        const errors = recipe.validate();
+        if (errors.length > 0) return res.status(400).json({ success: false, errors });
+
+        const saved = await recipe.save(db);
+        res.json({ success: true, data: saved.toSafeObject() });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    this.app.patch('/api/recipes/:id/ingredients', async (req, res) => {
+      try {
+        const recipe = new Recipe({ id: req.params.id });
+        const found = await recipe.findById(db);
+        if (!found) return res.status(404).json({ success: false, error: 'Receta no encontrada' });
+
+        const { ingredientId, quantityRequired } = req.body;
+        if (!ingredientId || quantityRequired === undefined) {
+          return res.status(400).json({ success: false, error: 'ingredientId y quantityRequired son requeridos' });
+        }
+
+        await recipe.addIngredient(db, ingredientId, quantityRequired);
+        const updated = await recipe.findById(db);
+        res.json({ success: true, data: updated.toSafeObject() });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    this.app.delete('/api/recipes/:id/ingredients/:ingredientId', async (req, res) => {
+      try {
+        const recipe = new Recipe({ id: req.params.id });
+        const found = await recipe.findById(db);
+        if (!found) return res.status(404).json({ success: false, error: 'Receta no encontrada' });
+
+        const removed = await recipe.removeIngredient(db, req.params.ingredientId);
+        if (!removed) return res.status(404).json({ success: false, error: 'Ingrediente no encontrado en la receta' });
+
+        const updated = await recipe.findById(db);
+        res.json({ success: true, data: updated.toSafeObject() });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
 
     this.app.get('/api/tables', (req, res) => this._handle(this.tableController.getAll(), res));
     this.app.get('/api/tables/available', (req, res) => this._handle(this.tableController.getAvailable(), res));

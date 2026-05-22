@@ -252,6 +252,27 @@
                             </table>
                         </div>
                     </div>
+
+                    <div class="bg-surface-container-lowest p-6 rounded-xl ambient-shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-headline text-xl font-bold">Recetas</h2>
+                            <button id="btn-add-recipe" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors flex items-center gap-2">
+                                <i data-lucide="plus-square" class="w-4 h-4"></i> Nueva Receta
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-surface-container-highest text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">
+                                    <tr>
+                                        <th class="p-4 rounded-tl-lg">Producto</th>
+                                        <th class="p-4">Ingredientes</th>
+                                        <th class="p-4 text-right rounded-tr-lg">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm divide-y divide-surface-container" id="recipes-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
                     <div class="bg-on-surface text-surface-container-lowest p-8 rounded-2xl ambient-shadow relative overflow-hidden">
